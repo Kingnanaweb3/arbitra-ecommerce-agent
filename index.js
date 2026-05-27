@@ -44,6 +44,18 @@ function calculateRiskScore(price, totalSpent, budget) {
   return Math.min(95, Math.round(priceRisk + spendRisk + noise));
 }
 
+async function getUSDCBalance() {
+  try {
+    const balance = await suiClient.getBalance({
+      owner: Ed25519Keypair.fromSecretKey(fromB64(PRIVATE_KEY)).getPublicKey().toSuiAddress(),
+      coinType: USDC_TYPE,
+    });
+    return Number(balance.totalBalance) / 1_000_000;
+  } catch {
+    return 0;
+  }
+}
+
 async function transferUSDC(amount) {
   if (!PRIVATE_KEY) {
     console.log("[Transfer] No private key — skipping real transfer");
@@ -87,8 +99,20 @@ async function transferUSDC(amount) {
 async function runCycle() {
   state.totalCycles++;
 
-  // Pick a random product
-  const product = CATALOG[Math.floor(Math.random() * CATALOG.length)];
+  // Check wallet balance first
+  const balance = await getUSDCBalance();
+  console.log(`[Cycle ${state.totalCycles}] Wallet balance: ${balance} USDC`);
+
+  // Pick affordable product
+  const affordable = CATALOG.filter(p => p.price <= balance);
+  if (affordable.length === 0) {
+    console.log("  No affordable products — skipping cycle");
+    state.totalSkips++;
+    state.lastAction = { action: "SKIP", reason: `Insufficient balance: ${balance} USDC`, timestamp: Date.now() };
+    state.history.unshift(state.lastAction);
+    return;
+  }
+  const product = affordable[Math.floor(Math.random() * affordable.length)];
   const riskScore = calculateRiskScore(product.price, state.totalSpent, 200);
 
   console.log(`\n[Cycle ${state.totalCycles}] Product: ${product.name} | Price: $${product.price} | Risk: ${riskScore}`);
@@ -106,6 +130,7 @@ async function runCycle() {
       slippageBps: 0,
       policyId: POLICY_ID,
       scope: "custom",
+      walletAddress: "0x75380bca19fad6159850104a134d131f46408f4759df47179b2350d231805630",
       timestamp: Date.now(),
     }, {
       headers: { "Content-Type": "application/json" },
