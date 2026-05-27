@@ -18,12 +18,12 @@ const suiClient = new SuiClient({ url: getFullnodeUrl("testnet") });
 
 // Product catalog
 const CATALOG = [
-  { name: "API Credits Bundle", vendor: "DevTools Inc", price: 12, category: "saas" },
-  { name: "Cloud Storage 10GB", vendor: "CloudVault", price: 8, category: "cloud" },
-  { name: "Analytics Dashboard", vendor: "DataPulse", price: 15, category: "saas" },
-  { name: "Email Campaign 1000", vendor: "MailFlow", price: 20, category: "marketing" },
-  { name: "SSL Certificate", vendor: "SecureNet", price: 10, category: "security" },
-  { name: "CDN Bandwidth 100GB", vendor: "FastEdge", price: 18, category: "cloud" },
+  { name: "API Credits Bundle", vendor: "DevTools Inc", price: 3, category: "saas" },
+  { name: "Cloud Storage 10GB", vendor: "CloudVault", price: 3, category: "cloud" },
+  { name: "Analytics Dashboard", vendor: "DataPulse", price: 3, category: "saas" },
+  { name: "Email Campaign 100", vendor: "MailFlow", price: 3, category: "marketing" },
+  { name: "SSL Certificate", vendor: "SecureNet", price: 3, category: "security" },
+  { name: "CDN Bandwidth 10GB", vendor: "FastEdge", price: 3, category: "cloud" },
 ];
 
 const state = {
