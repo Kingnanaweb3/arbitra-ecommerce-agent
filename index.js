@@ -76,8 +76,15 @@ async function transferUSDC(amount) {
       return null;
     }
 
+    // Find coin with sufficient balance
+    const validCoin = coins.data.find(c => Number(c.balance) >= amountInUnits);
+    if (!validCoin) {
+      console.log("[Transfer] No coin with sufficient balance found");
+      return null;
+    }
+
     const tx = new TransactionBlock();
-    const [coin] = tx.splitCoins(tx.object(coins.data[0].coinObjectId), [
+    const [coin] = tx.splitCoins(tx.object(validCoin.coinObjectId), [
       tx.pure(amountInUnits, "u64"),
     ]);
     tx.transferObjects([coin], tx.pure(VENDOR_ADDRESS, "address"));
