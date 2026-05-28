@@ -96,8 +96,9 @@ async function transferUSDC(amount) {
     });
 
     console.log(`[Transfer] Sent ${amount} USDC to vendor | tx: ${result.digest}`);
-    // Wait for transaction to be confirmed before next transfer
-    await suiClient.waitForTransactionBlock({ digest: result.digest });
+    // Wait for transaction to be confirmed and object to be updated
+    await suiClient.waitForTransactionBlock({ digest: result.digest, timeout: 30 });
+    await new Promise(r => setTimeout(r, 3000));
     return result.digest;
   } catch (e) {
     console.error("[Transfer] Error:", e.message);
