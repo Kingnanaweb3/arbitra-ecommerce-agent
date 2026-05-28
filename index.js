@@ -76,17 +76,15 @@ async function transferUSDC(amount) {
       return null;
     }
 
-    // Find coin with sufficient balance
-    const validCoin = coins.data.find(c => Number(c.balance) >= amountInUnits);
-    if (!validCoin) {
-      console.log("[Transfer] No coin with sufficient balance found");
-      return null;
-    }
-
     const tx = new TransactionBlock();
-    const [coin] = tx.splitCoins(tx.object(validCoin.coinObjectId), [
-      tx.pure(amountInUnits, "u64"),
-    ]);
+    
+    // Merge all USDC coins then split
+    const coinIds = coins.data.map(c => c.coinObjectId);
+    if (coinIds.length > 1) {
+      tx.mergeCoins(tx.object(coinIds[0]), coinIds.slice(1).map(id => tx.object(id)));
+    }
+    
+    const [coin] = tx.splitCoins(tx.object(coinIds[0]), [tx.pure(amountInUnits, "u64")]);
     tx.transferObjects([coin], tx.pure(VENDOR_ADDRESS, "address"));
 
     const result = await suiClient.signAndExecuteTransactionBlock({
@@ -96,9 +94,7 @@ async function transferUSDC(amount) {
     });
 
     console.log(`[Transfer] Sent ${amount} USDC to vendor | tx: ${result.digest}`);
-    // Wait for transaction to be confirmed and object to be updated
-    await suiClient.waitForTransactionBlock({ digest: result.digest, timeout: 30 });
-    await new Promise(r => setTimeout(r, 3000));
+    await new Promise(r => setTimeout(r, 5000));
     return result.digest;
   } catch (e) {
     console.error("[Transfer] Error:", e.message);
